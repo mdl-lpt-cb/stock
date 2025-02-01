@@ -64,7 +64,7 @@
         // Fonction pour envoyer un produit au serveur
         async function sendProductToServer(product) {
             try {
-                const response = await fetch('http://localhost:3000/api/produits', {
+                const response = await fetch('https://mdl-lpt-cb.github.io/stock/server.js', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -88,7 +88,7 @@
         // Fonction pour récupérer et afficher les produits depuis le serveur
         async function loadProducts() {
             try {
-                const response = await fetch('http://localhost:3000/api/produits');
+                const response = await fetch('https://mdl-lpt-cb.github.io/stock/server.js');
                 if (response.ok) {
                     const products = await response.json();
                     displayProducts(products); // Afficher les produits dans le tableau
