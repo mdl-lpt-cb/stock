@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Stocks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Gestion des Stocks</h1>
+
+    <form id="stockForm">
+        <label for="productName">Nom du produit:</label>
+        <input type="text" id="productName" required><br>
+
+        <label for="quantity">Quantité:</label>
+        <input type="number" id="quantity" required><br>
+
+        <label for="price">Prix unitaire:</label>
+        <input type="number" id="price" required><br>
+
+        <button type="submit">Ajouter au stock</button>
+    </form>
+
+    <h2>Liste des produits en stock</h2>
+    <table id="stockTable">
+        <thead>
+            <tr>
+                <th>Nom du produit</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Valeur totale</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les produits seront ajoutés ici -->
+        </tbody>
+    </table>
+
+    <script>
+        // Fonction pour envoyer un produit au serveur
+        async function sendProductToServer(product) {
+            try {
+                const response = await fetch('http://localhost:3000/api/produits', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(product)
+                });
+
+                if (response.ok) {
+                    console.log('Produit ajouté avec succès !');
+                    return await response.json(); // Récupérer la réponse du serveur (le produit ajouté)
+                } else {
+                    console.error('Erreur lors de l\'ajout du produit');
+                    alert("Erreur serveur, essayez à nouveau.");
+                }
+            } catch (error) {
+                console.error('Erreur réseau :', error);
+                alert("Erreur de connexion au serveur.");
+            }
+        }
+
+        // Fonction pour récupérer et afficher les produits depuis le serveur
+        async function loadProducts() {
+            try {
+                const response = await fetch('http://localhost:3000/api/produits');
+                if (response.ok) {
+                    const products = await response.json();
+                    displayProducts(products); // Afficher les produits dans le tableau
+                } else {
+                    console.error('Erreur lors du chargement des produits');
+                    alert("Impossible de charger les produits.");
+                }
+            } catch (error) {
+                console.error('Erreur réseau :', error);
+                alert("Erreur de connexion au serveur.");
+            }
+        }
+
+        // Fonction pour afficher les produits dans le tableau
+        function displayProducts(products) {
+            const tableBody = document.querySelector("#stockTable tbody");
+            tableBody.innerHTML = ""; // Vider le tableau avant de le remplir
+
+            products.forEach(product => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.price} €</td>
+                    <td>${(product.quantity * product.price).toFixed(2)} €</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Événement lorsque le formulaire est soumis
+        document.getElementById("stockForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const productName = document.getElementById("productName").value;
+            const quantity = parseInt(document.getElementById("quantity").value);
+            const price = parseFloat(document.getElementById("price").value);
+
+            if (productName && quantity > 0 && price > 0) {
+                const product = { name: productName, quantity, price };
+
+                // Envoyer le produit au serveur
+                sendProductToServer(product).then((newProduct) => {
+                    // Si l'enregistrement sur le serveur a réussi, on l'affiche dans le tableau
+                    loadProducts();
+                });
+
+                // Réinitialiser le formulaire
+                document.getElementById("stockForm").reset();
+            } else {
+                alert("Veuillez remplir tous les champs correctement.");
+            }
+        });
+
+        // Charger les produits dès que la page est prête
+        loadProducts();
+    </script>
+
+</body>
+</html>
